@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>多人应急演练</title>
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<div class="wrap narrow">
+  <h1>多人应急演练</h1>
+  <p class="muted">基于角色邀请码的限时、分支式应急演练平台。</p>
+
+  <div class="card">
+    <h2>主持人</h2>
+    <p>使用 YAML 定义阶段、角色可见信息、限时选项与条件分支，创建一场演练。</p>
+    <button id="createExample" class="primary">用示例剧本快速创建</button>
+    <details>
+      <summary>粘贴自定义 YAML 创建</summary>
+      <textarea id="yamlInput" rows="12" placeholder="粘贴剧本 YAML……"></textarea>
+      <button id="createYaml">创建演练</button>
+    </details>
+  </div>
+
+  <div class="card">
+    <h2>参与者</h2>
+    <form id="joinForm">
+      <label>演练 ID
+        <input id="sessionId" required placeholder="s_xxxxxxxx">
+      </label>
+      <label>角色邀请码
+        <input id="inviteCode" required placeholder="例如 CMD-7421">
+      </label>
+      <label>你的姓名
+        <input id="name" required maxlength="30">
+      </label>
+      <button class="primary">加入演练</button>
+    </form>
+  </div>
+
+  <div class="card">
+    <h2>恢复访问</h2>
+    <p class="muted">刷新或掉线后，可用之前拿到的链接 / 凭证直接回到现场。</p>
+    <a href="/host.html">前往主持人控制台 →</a><br>
+    <a href="/participant.html">前往参与者控制台 →</a>
+  </div>
+
+  <div id="msg" class="msg"></div>
+</div>
+<script src="/common.js"></script>
+<script>
+const msg = document.getElementById('msg');
+
+document.getElementById('createExample').onclick = async () => {
+  const r = await api('/api/sessions', {
+    method: 'POST', body: { use_example: true }
+  });
+  location.href = r.host_url;
+};
+
+document.getElementById('createYaml').onclick = async () => {
+  const yaml = document.getElementById('yamlInput').value;
+  if (!yaml.trim()) { showMsg(msg, '请先粘贴 YAML', true); return; }
+  try {
+    const r = await api('/api/sessions', {
+      method: 'POST', body: { yaml, use_example: false }
+    });
+    location.href = r.host_url;
+  } catch (e) { showMsg(msg, e.message, true); }
+};
+
+document.getElementById('joinForm').onsubmit = async (e) => {
+  e.preventDefault();
+  const session_id = document.getElementById('sessionId').value.trim();
+  const invite_code = document.getElementById('inviteCode').value.trim();
+  const name = document.getElementById('name').value.trim();
+  try {
+    const r = await api(`/api/sessions/${enc(session_id)}/join`, {
+      method: 'POST', body: { invite_code, name, request_id: rid() }
+    });
+    const url = `/participant.html?session=${enc(session_id)}`
+      + `&p=${enc(r.participant_id)}&token=${enc(r.token)}`;
+    location.href = url;
+  } catch (err) { showMsg(msg, err.message, true); }
+};
+</script>
+</body>
+</html>

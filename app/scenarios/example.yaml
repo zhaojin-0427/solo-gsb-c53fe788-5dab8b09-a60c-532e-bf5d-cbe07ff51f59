@@ -1,0 +1,221 @@
+# 示例剧本：办公楼火灾应急演练
+# 主持人可用本文件作为模板编写自己的演练。
+#
+# 字段说明：
+# title/description  演练基本信息
+# default_duration   每个阶段默认限时（秒），可被 stage.duration 覆盖
+# roles              角色列表；invite_code 为参与者加入凭据，互不相同
+# stages             阶段列表
+#   brief            所有/各角色进入阶段时看到的简报（all 或角色 id）
+#   content          各角色的私有信息（仅本角色可见）
+#   options          本阶段限时选项；all 表示所有角色相同
+#   branches         条件分支：when 全部满足（AND）时跳转 next，按顺序首条命中
+#   default_next     无分支命中时的下一阶段；不写则演练结束
+# first_stage        起始阶段 id
+
+title: 办公楼火灾应急演练
+description: >-
+  周二下午，办公楼 8 层突发火情。各角色依据自己掌握的信息在限时内做出决策，
+  决策组合将决定事态走向。
+
+default_duration: 90
+
+first_stage: alarm
+
+roles:
+  - id: commander
+    name: 现场指挥官
+    description: 统筹现场处置与人员调度
+    invite_code: CMD-7421
+  - id: comms
+    name: 通信联络员
+    description: 负责内外联络与信息核实
+    invite_code: COM-3180
+  - id: medic
+    name: 医疗救护员
+    description: 负责伤员检伤与急救
+    invite_code: MED-5562
+
+stages:
+  - id: alarm
+    name: 警报初起
+    duration: 60
+    brief:
+      all: >-
+        14:32，8 层茶水间烟雾报警器触发，监控画面可见明火。
+        消防控制室正在核实，电梯随时可能停用。
+    content:
+      commander: >-
+        你掌握：楼内共有 126 人登记在岗；义务消防队 4 人在 7 层待命。
+        总经理已电话授权你全权处置。
+      comms: >-
+        你刚接到 8 层员工来电：火源在茶水间微波炉附近，有一名同事手部烫伤。
+        119 来电显示排队中，尚未拨通。
+      medic: >-
+        急救包在 8 层东侧消防柜；烫伤同事意识清醒。你注意到楼梯间有烟雾倒灌迹象。
+    options:
+      all:
+        - id: evacuate
+          label: 立即下令全楼疏散
+        - id: investigate
+          label: 先派义务消防队核实火情
+        - id: shelter
+          label: 组织 8 层人员就地避险
+    branches:
+      - when:
+          - role: commander
+            in: [evacuate]
+        next: evacuation
+      - when:
+          - role: commander
+            in: [investigate, shelter]
+        next: spread
+    default_next: spread
+
+  - id: evacuation
+    name: 疏散进行
+    duration: 75
+    brief:
+      all: 疏散警报拉响，人员开始沿东西两侧楼梯撤离，楼内广播反复播报。
+    content:
+      commander: >-
+        西楼梯 6 层处有一批访客（约 15 人）无人引导，在平台处滞留拥堵。
+        有部门负责人请示是否允许返回取未保存的服务器硬盘。
+      comms: >-
+        消防队已出动，预计 6 分钟到达，要求派人到北门引导并保持电话畅通。
+        8 层报告烫伤员工自行下楼，目前在 5 层楼梯间因疼痛停住。
+      medic: >-
+        5 层楼梯间的烫伤员工出现寒战；同时一层大堂有一名哮喘员工吸入烟雾后喘息加重。
+    options:
+      commander:
+        - id: guide_west
+          label: 抽调整组义务消防队去西楼梯引导访客
+        - id: deny_return
+          label: 严令任何人不得返回，只派 1 人引导访客
+        - id: allow_server
+          label: 允许 IT 两人短时返回抢救硬盘
+      comms:
+        - id: north_gate
+          label: 到北门引导消防车并保持接线
+        - id: relay_5f
+          label: 先在无线电中持续播报 5 层滞留情况
+        - id: call_elevator
+          label: 联系物业尝试保留一部货运电梯
+      medic:
+        - id: treat_burn
+          label: 上楼接护烫伤员工
+        - id: treat_asthma
+          label: 留守一层处理哮喘员工
+        - id: split_kit
+          label: 把急救包交给旁人，两边同时处理
+    branches:
+      - when:
+          - role: commander
+            in: [deny_return]
+          - role: comms
+            in: [north_gate]
+        next: muster
+    default_next: casualty
+
+  - id: spread
+    name: 火势蔓延
+    duration: 60
+    brief:
+      all: 核实耗时 4 分钟，火焰已沿吊顶蔓延至走廊，喷淋启动但火势未受控。
+    content:
+      commander: 8 层烟感全部报警，楼梯间烟量明显增大，再拖延疏散将封锁东侧楼梯。
+      comms: 119 终于接通，调度员追问是否有被困人员与准确起火楼层。
+      medic: 有 3 名员工在工位收拾个人物品，拒绝立刻撤离。
+    options:
+      all:
+        - id: evacuate_now
+          label: 立刻强制全楼疏散
+        - id: rescue_first
+          label: 先组织 8 层人员撤离再广播全楼
+    branches:
+      - when:
+          - role: commander
+            in: [evacuate_now]
+        next: evacuation
+    default_next: casualty
+
+  - id: muster
+    name: 集合点清点
+    duration: 60
+    brief:
+      all: 人员在北门外集合点集结，消防车到达并展开扑救。需要清点人数、报告缺口。
+    content:
+      commander: >-
+        各部门清点结果：126 人中 124 人到齐，研发组报称有两人可能还在 9 层。
+        消防员询问是否可以由知情人带路进入。
+      comms: 手机信号拥塞；两名“失联”人员刚在微信群发言称已从南门出楼，尚未核验证实。
+      medic: 烫伤员工与哮喘员工生命体征平稳，另有一人崴脚需要冰敷。
+    options:
+      commander:
+        - id: verify_first
+          label: 先核实南门消息，严禁任何人重新入楼
+        - id: lead_in
+          label: 派知情人随消防进入 9 层搜索
+      comms:
+        - id: call_missing
+          label: 持续拨打两人电话并派人到南门当面核实
+        - id: broadcast_count
+          label: 组织全场按部门举手二次清点
+      medic:
+        - id: triage
+          label: 对三名伤者按轻重分级并登记
+        - id: ambulance
+          label: 专注陪护照料，等待 120
+    branches:
+      - when:
+          - role: commander
+            in: [verify_first]
+          - role: comms
+            in: [call_missing]
+        next: debrief_good
+    default_next: debrief_good
+
+  - id: casualty
+    name: 次生伤亡
+    duration: 60
+    brief:
+      all: 拥堵与延误造成楼梯间多名员工吸入浓烟，现场出现混乱与指责。
+    content:
+      commander: 西楼梯有两人瘫坐，队伍彻底停滞，消防员要求立即清空楼梯间。
+      comms: 媒体电话开始打入询问伤亡情况，总经理要求统一口径。
+      medic: 两名伤者中一人意识模糊，超出你现场处置能力。
+    options:
+      all:
+        - id: stabilize
+          label: 稳定现场、清空通道、移交专业救援
+        - id: push_on
+          label: 继续按原计划加速疏散
+    default_next: debrief_bad
+
+  - id: debrief_good
+    name: 复盘（成功路径）
+    duration: 45
+    brief:
+      all: 火被扑灭，无人重伤。请各自总结本角色决策中最关键的一步。
+    content:
+      commander: 思考：授权链条与“禁止返回”的执行如何平衡财产与人身安全。
+      comms: 思考：信息核实与对外口径在混乱中如何保持一致。
+      medic: 思考：有限人力下检伤分类的取舍依据。
+    options:
+      all:
+        - id: done
+          label: 提交复盘要点
+
+  - id: debrief_bad
+    name: 复盘（问题路径）
+    duration: 45
+    brief:
+      all: 演练出现人员伤害后果。请各自回顾：哪个时间点的决策本可改变走向？
+    content:
+      commander: 重点复盘核实火情耗时与楼梯拥堵两个节点。
+      comms: 重点复盘信息传递延迟与未经核实信息的处理。
+      medic: 重点复盘资源不足时如何升级求助。
+    options:
+      all:
+        - id: done
+          label: 提交复盘要点

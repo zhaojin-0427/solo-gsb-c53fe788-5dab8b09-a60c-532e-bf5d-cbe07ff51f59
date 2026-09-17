@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>主持人控制台 · 应急演练</title>
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <div class="row" style="align-items:center;justify-content:space-between">
+      <div>
+        <h1 id="title" style="margin:0">加载中…</h1>
+        <div class="muted">
+          演练 ID <code id="sid"></code>
+          &nbsp;·&nbsp; 状态 <span id="status"></span>
+          &nbsp;·&nbsp; <span id="wsState"><span class="ws-dot off"></span>未连接</span>
+          &nbsp;·&nbsp; 版本 <b id="version">-</b>
+        </div>
+      </div>
+      <div>
+        <button id="startBtn" class="primary">开始 / 进入下一阶段</button>
+        <button id="settleBtn">立即结算本阶段</button>
+        <button id="endBtn">终止演练</button>
+      </div>
+    </div>
+    <p class="muted" id="joinHint"></p>
+  </div>
+
+  <div id="msg" class="msg"></div>
+
+  <div class="row">
+    <div class="card" style="flex:2 1 420px">
+      <h2>当前阶段 <span id="curTimer" class="timer"></span></h2>
+      <div id="currentStage"><p class="muted">尚无进行中的阶段。</p></div>
+    </div>
+    <div class="card" style="flex:1 1 280px">
+      <h2>参与者</h2>
+      <div id="participants"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>阶段记录与导出</h2>
+    <div id="history"></div>
+    <a id="exportHost" class="btn" target="_blank">导出主持人全量记录 (Markdown)</a>
+    <a id="replayLink" class="btn" target="_blank">查看确定性回放 (JSON)</a>
+  </div>
+</div>
+<script src="/common.js"></script>
+<script src="/host.js"></script>
+</body>
+</html>

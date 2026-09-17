@@ -1,0 +1,7 @@
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+aiosqlite==0.20.0
+PyYAML==6.0.2
+# 端到端测试（app.tests.test_api）需要；运行时本身不依赖
+httpx==0.28.1
+websockets==14.1

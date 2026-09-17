@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>加入演练 · 应急演练</title>
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<div class="wrap narrow">
+  <h1>加入应急演练</h1>
+  <div class="card">
+    <h2 id="title">读取演练信息…</h2>
+    <p id="desc" class="muted"></p>
+    <p id="roles"></p>
+  </div>
+  <div class="card">
+    <form id="form">
+      <label>角色邀请码
+        <input id="code" required autofocus placeholder="主持人提供，例如 CMD-7421">
+      </label>
+      <label>你的姓名
+        <input id="name" required maxlength="30">
+      </label>
+      <button class="primary">加入</button>
+    </form>
+    <div id="msg" class="msg"></div>
+  </div>
+  <p><a href="/">← 返回首页</a></p>
+</div>
+<script src="/common.js"></script>
+<script>
+const sessionId = qs('session');
+const msg = document.getElementById('msg');
+
+(async () => {
+  try {
+    const meta = await api(`/api/sessions/${enc(sessionId)}`);
+    document.getElementById('title').textContent = meta.meta.title;
+    document.getElementById('desc').textContent = meta.meta.description || '';
+    document.getElementById('roles').innerHTML =
+      '<b>角色：</b>' + meta.meta.roles
+        .map(r => esc(r.name) + (r.description ? '（' + esc(r.description) + '）' : ''))
+        .join('、');
+    if (meta.status !== 'pending') {
+      showMsg(msg, '该演练已开始或结束，新角色可能无法加入。', true);
+    }
+  } catch (e) {
+    document.getElementById('title').textContent = '演练不存在';
+    showMsg(msg, e.message, true);
+  }
+})();
+
+document.getElementById('form').onsubmit = async (e) => {
+  e.preventDefault();
+  try {
+    const r = await api(`/api/sessions/${enc(sessionId)}/join`, {
+      method: 'POST',
+      body: {
+        invite_code: document.getElementById('code').value.trim(),
+        name: document.getElementById('name').value.trim(),
+        request_id: rid(),
+      }
+    });
+    saveCred('participant', sessionId, {
+      participant_id: r.participant_id, token: r.token,
+      role_id: r.role_id, role_name: r.role_name
+    });
+    location.href = `/participant.html?session=${enc(sessionId)}`
+      + `&p=${enc(r.participant_id)}&token=${enc(r.token)}`;
+  } catch (err) { showMsg(msg, err.message, true); }
+};
+</script>
+</body>
+</html>

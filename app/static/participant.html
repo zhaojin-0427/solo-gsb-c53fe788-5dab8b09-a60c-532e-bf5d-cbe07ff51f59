@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>参与者控制台 · 应急演练</title>
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<div class="wrap narrow">
+  <div class="card">
+    <h1 id="title">加载中…</h1>
+    <p class="muted">
+      你是 <b id="role"></b> · 演练 <code id="sid"></code>
+      · <span id="status"></span>
+      · <span id="wsState"><span class="ws-dot off"></span>未连接</span>
+      · 版本 <b id="version">-</b>
+    </p>
+  </div>
+
+  <div id="msg" class="msg"></div>
+
+  <div id="lobby" class="card" hidden>
+    <h2>等待主持人开始演练</h2>
+    <p class="muted">请保持本页面打开。断线会自动重连，无需重复加入。</p>
+  </div>
+
+  <div id="stageCard" class="card" hidden>
+    <h2 id="stageName"></h2>
+    <div class="row" style="justify-content:space-between;align-items:center">
+      <span class="muted">剩余时间</span>
+      <span id="timer" class="timer"></span>
+    </div>
+    <h3>简报</h3>
+    <div id="brief" class="private"></div>
+    <h3>仅你可见的信息</h3>
+    <div id="content" class="private"></div>
+    <h3>你的决定（限时）</h3>
+    <div id="options"></div>
+    <p id="submitState" class="muted"></p>
+  </div>
+
+  <div id="endCard" class="card" hidden>
+    <h2>演练已结束</h2>
+    <p>感谢参与。你可以导出仅包含本人角色信息的个人记录。</p>
+    <a id="exportMe" class="btn primary" target="_blank">导出我的记录 (Markdown)</a>
+  </div>
+
+  <div class="card">
+    <h2>我的阶段回顾</h2>
+    <div id="history" class="muted">暂无已结束阶段。</div>
+  </div>
+</div>
+<script src="/common.js"></script>
+<script src="/participant.js"></script>
+</body>
+</html>

@@ -1,0 +1,18 @@
+services:
+  drill:
+    build: .
+    image: emergency-drill:latest
+    container_name: emergency-drill
+    ports:
+      - "8000:8000"
+    volumes:
+      - drill-data:/data
+      # 想直接替换示例剧本，可取消注释把自定义 YAML 挂进去：
+      # - ./my-scenario.yaml:/app/app/scenarios/example.yaml:ro
+    environment:
+      DRILL_DB_PATH: /data/drill.db
+      DRILL_SECRET: change-me-in-production
+    restart: unless-stopped
+
+volumes:
+  drill-data:
